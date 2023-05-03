@@ -8,12 +8,54 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "../api/auth/[...nextauth]"
 import { dbOrders } from "@/database"
 import { IOrder } from "@/interfaces"
+import { PayPalButtons } from "@paypal/react-paypal-js"
+import { tesloApi } from "@/api"
+import { useRouter } from "next/router"
 
 interface Props {
   order: IOrder
 }
 
+// export type OrderResponseBody = {
+//   id: string;
+//   status:
+//       | "COMPLETED"
+//       | "SAVED"
+//       | "APPROVED"
+//       | "VOIDED"
+//       | "PAYER_ACTION_REQUIRED";
+// };
+export type OrderResponseBody = {
+  id: string;
+  status: "COMPLETED" | "SAVED" | "APPROVED" | "VOIDED" | "PAYER_ACTION_REQUIRED" | "CREATED"
+};
+// "COMPLETED" | "SAVED" | "APPROVED" | "VOIDED" | "PAYER_ACTION_REQUIRED"
+
+
 const OrderPage: NextPage<Props> = ({ order }) => {
+
+  const router = useRouter();
+
+  const onOrderCompleted = async( details: OrderResponseBody ) => {
+
+    if( details.status !== 'COMPLETED' ) {
+      return alert('No hay pago en Paypal')
+    }
+
+    try {
+      const { data } = await tesloApi.post('/orders/pay', {
+        transactionId: details.id,
+        orderId: order._id
+      })
+
+      router.reload()
+    } catch (error) {
+      console.log(error)
+      alert('Error')
+    }
+
+  }
+
   return (
     <ShopLayout title="Resumen de la orden" pageDescription={'Resumen de la orden de compra'}>
       <>
@@ -88,7 +130,27 @@ const OrderPage: NextPage<Props> = ({ order }) => {
                         />
                       )
                       : (
-                          <h1>Pagar</h1>
+                        <PayPalButtons
+                          createOrder={(data, actions) => {
+                            return actions.order.create({
+                              purchase_units: [
+                                {
+                                  amount: {
+                                    value: `${order.total}`,
+                                  },
+                                },
+                              ],
+                            });
+                          }}
+                          onApprove={(data, actions) => {
+                            return actions.order!.capture().then((details) => {
+                              onOrderCompleted( details );
+                              //console.log({details})
+                              //const name = details.payer.name!.given_name;
+                              //alert(`Transaction completed by ${name}`);
+                            });
+                          }}
+                        />
                       )
                   }
 
@@ -131,7 +193,8 @@ export const getServerSideProps: GetServerSideProps = async ({ req, query, res }
       }
     }
   }
-  if (order.user !== session.user.user.id) {
+  const userId = session.user.user.id ? session.user.user.id : session.user.user._id;
+  if (order.user !== userId) {
     return {
       redirect: {
         destination: `/orders/history`,
