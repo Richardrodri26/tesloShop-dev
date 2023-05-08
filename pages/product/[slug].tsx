@@ -172,7 +172,7 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { slug = '' } = params as { slug: string }
-  const product = await dbProducts.getProductsBySlug(slug);
+  const product = await dbProducts.getProductBySlug(slug);
 
   if (!product) {
     return {

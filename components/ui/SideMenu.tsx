@@ -1,8 +1,9 @@
 import { Box, Divider, Drawer, IconButton, Input, InputAdornment, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from "@mui/material"
-import { AccountCircleOutlined, AdminPanelSettings, CategoryOutlined, ConfirmationNumberOutlined, EscalatorWarningOutlined, FemaleOutlined, LoginOutlined, MaleOutlined, SearchOutlined, VpnKeyOutlined } from "@mui/icons-material"
+import { AccountCircleOutlined, AdminPanelSettings, CategoryOutlined, ConfirmationNumberOutlined, DashboardOutlined, EscalatorWarningOutlined, FemaleOutlined, LoginOutlined, MaleOutlined, SearchOutlined, VpnKeyOutlined } from "@mui/icons-material"
 import { useContext, useState } from "react"
 import { AuthContext, UIContext } from "@/context"
 import { useRouter } from "next/router"
+import { useSession } from "next-auth/react"
 
 
 export const SideMenu = () => {
@@ -129,17 +130,25 @@ export const SideMenu = () => {
 
 					{/* Admin */}
 					{
-						user?.role === 'admin' && (
+						user?.user?.role === 'admin'&& (
 							<>
 								<Divider />
 								<ListSubheader>Admin Panel</ListSubheader>
 
-								<ListItemButton >
+								<ListItemButton onClick={ () => navigateTo(`/admin/`) }>
+									<ListItemIcon>
+										<DashboardOutlined />
+									</ListItemIcon>
+									<ListItemText primary={'Dashboard'} />
+								</ListItemButton>
+
+								<ListItemButton onClick={ () => navigateTo(`/admin/products`) }>
 									<ListItemIcon>
 										<CategoryOutlined />
 									</ListItemIcon>
 									<ListItemText primary={'Productos'} />
 								</ListItemButton>
+
 								<ListItemButton >
 									<ListItemIcon>
 										<ConfirmationNumberOutlined />
@@ -147,7 +156,7 @@ export const SideMenu = () => {
 									<ListItemText primary={'Ordenes'} />
 								</ListItemButton>
 
-								<ListItemButton >
+								<ListItemButton onClick={ () => navigateTo(`/admin/users`)}>
 									<ListItemIcon>
 										<AdminPanelSettings />
 									</ListItemIcon>

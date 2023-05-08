@@ -207,7 +207,9 @@ export const getServerSideProps: GetServerSideProps = async ({ req, query, res }
       }
     }
   }
-  const userId = session.user.user.id ? session.user.user.id : session.user.user._id;
+  //const userId = session.user.user.id ? session.user.user.id : session.user.user._id;
+  const userId = session.user.user.id || session.user.user._id;
+
   if (order.user !== userId) {
     return {
       redirect: {
