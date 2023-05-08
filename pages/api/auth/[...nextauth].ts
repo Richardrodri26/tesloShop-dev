@@ -14,7 +14,6 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Contraseña:", type: "password", placeholder: "Contraseña", },
       },
       async authorize(credentials) {
-        console.log({credentials})
         const user = await dbUsers.checkUserEmailPassword( credentials!.email, credentials!.password);
         if (user) {
           // Map the user object to the expected shape with an `id` property
